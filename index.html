@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Habits Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    header p.date {
+      margin-top: 6px;
+      font-size: 1rem;
+      color: #718096;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Add habit form */
+    .add-habit-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .add-habit-form input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fff;
+    }
+
+    .add-habit-form input:focus {
+      border-color: #667eea;
+    }
+
+    .add-habit-form button {
+      padding: 12px 20px;
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .add-habit-form button:hover {
+      background: #5a67d8;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a0aec0;
+      margin-bottom: 12px;
+    }
+
+    /* Habits list */
+    .habits-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .habit-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+
+    .habit-item:hover {
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .habit-item.done {
+      opacity: 0.6;
+    }
+
+    .habit-item.done .habit-name {
+      text-decoration: line-through;
+      color: #a0aec0;
+    }
+
+    /* Custom checkbox */
+    .habit-check {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      border-radius: 50%;
+      border: 2px solid #cbd5e0;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .habit-check.checked {
+      background: #48bb78;
+      border-color: #48bb78;
+    }
+
+    .habit-check svg {
+      display: none;
+    }
+
+    .habit-check.checked svg {
+      display: block;
+    }
+
+    .habit-name {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .habit-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #cbd5e0;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s;
+      line-height: 0;
+    }
+
+    .habit-delete:hover {
+      color: #fc8181;
+    }
+
+    /* Progress */
+    .progress-section {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .progress-header span {
+      font-size: 0.9rem;
+      color: #718096;
+    }
+
+    .progress-header strong {
+      font-size: 1rem;
+      color: #2d3748;
+    }
+
+    .progress-bar-bg {
+      height: 10px;
+      background: #edf2f7;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #48bb78);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 32px 0;
+      color: #a0aec0;
+      font-size: 0.95rem;
+    }
+
+    .empty-state span {
+      display: block;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    /* Supabase placeholder notice */
+    .db-notice {
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: #ebf4ff;
+      border: 1px dashed #90cdf4;
+      font-size: 0.82rem;
+      color: #2b6cb0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Daily Habits</h1>
+    <p class="date" id="today-date"></p>
+  </header>
+
+  <form class="add-habit-form" id="add-form">
+    <input
+      type="text"
+      id="habit-input"
+      placeholder="Add a new habit..."
+      maxlength="80"
+      autocomplete="off"
+    />
+    <button type="submit">+ Add</button>
+  </form>
+
+  <p class="section-label">Today's habits</p>
+
+  <div class="habits-list" id="habits-list">
+    <!-- habits rendered here -->
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-header">
+      <span>Progress</span>
+      <strong id="progress-text">0 / 0</strong>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div class="db-notice">
+    Supabase integration coming soon — habits are stored locally for now.
+  </div>
+</div>
+
+<script>
+  // ─── State ────────────────────────────────────────────────────────────────
+  const STORAGE_KEY = 'daily-habits';
+
+  function getTodayKey() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  }
+
+  function loadState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveState(state) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function getToday(state) {
+    const key = getTodayKey();
+    if (!state[key]) {
+      state[key] = { habits: [] };
+    }
+    return state[key];
+  }
+
+  // ─── DOM helpers ──────────────────────────────────────────────────────────
+  const list = document.getElementById('habits-list');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+
+  function renderHabits() {
+    const state = loadState();
+    const today = getToday(state);
+    const habits = today.habits;
+
+    list.innerHTML = '';
+
+    if (habits.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <span>🌱</span>
+          No habits yet — add one above!
+        </div>`;
+      updateProgress(0, 0);
+      return;
+    }
+
+    habits.forEach((habit, index) => {
+      const item = document.createElement('div');
+      item.className = 'habit-item' + (habit.done ? ' done' : '');
+
+      item.innerHTML = `
+        <div class="habit-check ${habit.done ? 'checked' : ''}" data-index="${index}" role="checkbox" aria-checked="${habit.done}" tabindex="0">
+          <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
+            <path d="M1 5L4.5 8.5L12 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="habit-name">${escapeHtml(habit.name)}</span>
+        <button class="habit-delete" data-index="${index}" title="Remove habit">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      `;
+
+      list.appendChild(item);
+    });
+
+    const done = habits.filter(h => h.done).length;
+    updateProgress(done, habits.length);
+  }
+
+  function updateProgress(done, total) {
+    progressText.textContent = `${done} / ${total}`;
+    progressBar.style.width = total > 0 ? `${Math.round((done / total) * 100)}%` : '0%';
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ─── Events ───────────────────────────────────────────────────────────────
+  document.getElementById('add-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('habit-input');
+    const name = input.value.trim();
+    if (!name) return;
+
+    const state = loadState();
+    const today = getToday(state);
+    today.habits.push({ name, done: false });
+    saveState(state);
+    input.value = '';
+    renderHabits();
+  });
+
+  list.addEventListener('click', (e) => {
+    const checkEl = e.target.closest('.habit-check');
+    const deleteEl = e.target.closest('.habit-delete');
+
+    const state = loadState();
+    const today = getToday(state);
+
+    if (checkEl) {
+      const i = parseInt(checkEl.dataset.index);
+      today.habits[i].done = !today.habits[i].done;
+      saveState(state);
+      renderHabits();
+    }
+
+    if (deleteEl) {
+      const i = parseInt(deleteEl.dataset.index);
+      today.habits.splice(i, 1);
+      saveState(state);
+      renderHabits();
+    }
+  });
+
+  // Keyboard support for checkboxes
+  list.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      const checkEl = e.target.closest('.habit-check');
+      if (checkEl) {
+        e.preventDefault();
+        checkEl.click();
+      }
+    }
+  });
+
+  // ─── Init ─────────────────────────────────────────────────────────────────
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  renderHabits();
+</script>
+
+</body>
+</html>
