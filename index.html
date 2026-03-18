@@ -80,6 +80,11 @@
       background: #5a67d8;
     }
 
+    .add-habit-form button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     /* Section label */
     .section-label {
       font-size: 0.75rem;
@@ -225,16 +230,39 @@
       margin-bottom: 10px;
     }
 
-    /* Supabase placeholder notice */
+    /* Status notice */
     .db-notice {
       margin-top: 20px;
       padding: 12px 16px;
       border-radius: 10px;
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    .db-notice.connected {
+      background: #f0fff4;
+      border: 1px dashed #68d391;
+      color: #276749;
+    }
+
+    .db-notice.error {
+      background: #fff5f5;
+      border: 1px dashed #fc8181;
+      color: #c53030;
+    }
+
+    .db-notice.loading {
       background: #ebf4ff;
       border: 1px dashed #90cdf4;
-      font-size: 0.82rem;
       color: #2b6cb0;
+    }
+
+    /* Loading spinner overlay on list */
+    .list-loading {
       text-align: center;
+      padding: 32px 0;
+      color: #a0aec0;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -254,13 +282,13 @@
       maxlength="80"
       autocomplete="off"
     />
-    <button type="submit">+ Add</button>
+    <button type="submit" id="add-btn">+ Add</button>
   </form>
 
   <p class="section-label">Today's habits</p>
 
   <div class="habits-list" id="habits-list">
-    <!-- habits rendered here -->
+    <div class="list-loading">Loading...</div>
   </div>
 
   <div class="progress-section">
@@ -273,49 +301,101 @@
     </div>
   </div>
 
-  <div class="db-notice">
-    Supabase integration coming soon — habits are stored locally for now.
+  <div class="db-notice loading" id="db-notice">
+    Connecting to Supabase...
   </div>
 </div>
 
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  SUPABASE SETUP                                                  ║
+  ║                                                                  ║
+  ║  1. Go to https://supabase.com and create a free project         ║
+  ║                                                                  ║
+  ║  2. In the SQL Editor, run:                                      ║
+  ║                                                                  ║
+  ║     create table habits (                                        ║
+  ║       id uuid primary key default gen_random_uuid(),            ║
+  ║       name text not null,                                        ║
+  ║       done boolean not null default false,                       ║
+  ║       date date not null,                                        ║
+  ║       created_at timestamptz default now()                       ║
+  ║     );                                                           ║
+  ║                                                                  ║
+  ║     alter table habits enable row level security;                ║
+  ║                                                                  ║
+  ║     -- Allow anonymous access (no auth required):               ║
+  ║     create policy "anon_all" on habits                           ║
+  ║       for all using (true) with check (true);                    ║
+  ║                                                                  ║
+  ║  3. Go to Project Settings → API and copy:                       ║
+  ║       - Project URL  → paste as SUPABASE_URL below               ║
+  ║       - anon/public key → paste as SUPABASE_ANON_KEY below       ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  // ─── State ────────────────────────────────────────────────────────────────
-  const STORAGE_KEY = 'daily-habits';
+  // ─── Config ───────────────────────────────────────────────────────────────
+  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';       // e.g. https://xyzabc.supabase.co
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';  // anon/public key
 
-  function getTodayKey() {
-    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  }
+  // ─── Init ─────────────────────────────────────────────────────────────────
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function loadState() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    } catch {
-      return {};
-    }
-  }
+  const TODAY = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
-  function saveState(state) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function getToday(state) {
-    const key = getTodayKey();
-    if (!state[key]) {
-      state[key] = { habits: [] };
-    }
-    return state[key];
-  }
-
-  // ─── DOM helpers ──────────────────────────────────────────────────────────
-  const list = document.getElementById('habits-list');
+  const list        = document.getElementById('habits-list');
   const progressBar = document.getElementById('progress-bar');
-  const progressText = document.getElementById('progress-text');
+  const progressText= document.getElementById('progress-text');
+  const dbNotice    = document.getElementById('db-notice');
+  const addBtn      = document.getElementById('add-btn');
 
-  function renderHabits() {
-    const state = loadState();
-    const today = getToday(state);
-    const habits = today.habits;
+  function setNotice(msg, type) {
+    dbNotice.textContent = msg;
+    dbNotice.className = `db-notice ${type}`;
+  }
 
+  // ─── Data helpers ─────────────────────────────────────────────────────────
+  async function fetchHabits() {
+    const { data, error } = await db
+      .from('habits')
+      .select('*')
+      .eq('date', TODAY)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  }
+
+  async function addHabit(name) {
+    const { data, error } = await db
+      .from('habits')
+      .insert({ name, done: false, date: TODAY })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function toggleHabit(id, done) {
+    const { error } = await db
+      .from('habits')
+      .update({ done })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  async function deleteHabit(id) {
+    const { error } = await db
+      .from('habits')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+  function renderHabits(habits) {
     list.innerHTML = '';
 
     if (habits.length === 0) {
@@ -328,18 +408,19 @@
       return;
     }
 
-    habits.forEach((habit, index) => {
+    habits.forEach((habit) => {
       const item = document.createElement('div');
       item.className = 'habit-item' + (habit.done ? ' done' : '');
+      item.dataset.id = habit.id;
 
       item.innerHTML = `
-        <div class="habit-check ${habit.done ? 'checked' : ''}" data-index="${index}" role="checkbox" aria-checked="${habit.done}" tabindex="0">
+        <div class="habit-check ${habit.done ? 'checked' : ''}" data-id="${habit.id}" data-done="${habit.done}" role="checkbox" aria-checked="${habit.done}" tabindex="0">
           <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
             <path d="M1 5L4.5 8.5L12 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span class="habit-name">${escapeHtml(habit.name)}</span>
-        <button class="habit-delete" data-index="${index}" title="Remove habit">
+        <button class="habit-delete" data-id="${habit.id}" title="Remove habit">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -362,44 +443,62 @@
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  async function reload() {
+    try {
+      const habits = await fetchHabits();
+      renderHabits(habits);
+      setNotice('Connected to Supabase', 'connected');
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state"><span>⚠️</span>Could not load habits.</div>`;
+      setNotice(`Supabase error: ${err.message}`, 'error');
+    }
+  }
+
   // ─── Events ───────────────────────────────────────────────────────────────
-  document.getElementById('add-form').addEventListener('submit', (e) => {
+  document.getElementById('add-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('habit-input');
     const name = input.value.trim();
     if (!name) return;
 
-    const state = loadState();
-    const today = getToday(state);
-    today.habits.push({ name, done: false });
-    saveState(state);
-    input.value = '';
-    renderHabits();
+    addBtn.disabled = true;
+    try {
+      await addHabit(name);
+      input.value = '';
+      await reload();
+    } catch (err) {
+      setNotice(`Failed to add habit: ${err.message}`, 'error');
+    } finally {
+      addBtn.disabled = false;
+    }
   });
 
-  list.addEventListener('click', (e) => {
+  list.addEventListener('click', async (e) => {
     const checkEl = e.target.closest('.habit-check');
     const deleteEl = e.target.closest('.habit-delete');
 
-    const state = loadState();
-    const today = getToday(state);
-
     if (checkEl) {
-      const i = parseInt(checkEl.dataset.index);
-      today.habits[i].done = !today.habits[i].done;
-      saveState(state);
-      renderHabits();
+      const id = checkEl.dataset.id;
+      const newDone = checkEl.dataset.done !== 'true';
+      try {
+        await toggleHabit(id, newDone);
+        await reload();
+      } catch (err) {
+        setNotice(`Failed to update habit: ${err.message}`, 'error');
+      }
     }
 
     if (deleteEl) {
-      const i = parseInt(deleteEl.dataset.index);
-      today.habits.splice(i, 1);
-      saveState(state);
-      renderHabits();
+      const id = deleteEl.dataset.id;
+      try {
+        await deleteHabit(id);
+        await reload();
+      } catch (err) {
+        setNotice(`Failed to delete habit: ${err.message}`, 'error');
+      }
     }
   });
 
-  // Keyboard support for checkboxes
   list.addEventListener('keydown', (e) => {
     if (e.key === ' ' || e.key === 'Enter') {
       const checkEl = e.target.closest('.habit-check');
@@ -410,12 +509,17 @@
     }
   });
 
-  // ─── Init ─────────────────────────────────────────────────────────────────
+  // ─── Boot ─────────────────────────────────────────────────────────────────
   document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
-  renderHabits();
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    list.innerHTML = `<div class="empty-state"><span>🔧</span>Set your Supabase credentials in index.html to get started.</div>`;
+    setNotice('Supabase not configured — see the HTML comments for setup instructions.', 'error');
+  } else {
+    reload();
+  }
 </script>
 
 </body>
