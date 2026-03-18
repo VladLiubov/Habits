@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Habits Tracker</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,402 +18,225 @@
     header {
       text-align: center;
       margin-bottom: 32px;
+      position: relative;
     }
 
-    header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1a202c;
-    }
+    header h1 { font-size: 2rem; font-weight: 700; color: #1a202c; }
+    header p.date { margin-top: 6px; font-size: 1rem; color: #718096; }
 
-    header p.date {
-      margin-top: 6px;
-      font-size: 1rem;
-      color: #718096;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    /* Add habit form */
-    .add-habit-form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 28px;
-    }
-
-    .add-habit-form input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-      background: #fff;
-    }
-
-    .add-habit-form input:focus {
-      border-color: #667eea;
-    }
-
-    .add-habit-form button {
-      padding: 12px 20px;
+    /* Stats button in header */
+    .stats-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
       background: #667eea;
       color: #fff;
       border: none;
       border-radius: 10px;
-      font-size: 0.95rem;
+      padding: 9px 14px;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       transition: background 0.2s;
-      white-space: nowrap;
     }
+    .stats-btn:hover { background: #5a67d8; }
+    .stats-btn svg { flex-shrink: 0; }
 
-    .add-habit-form button:hover {
-      background: #5a67d8;
+    .container { max-width: 600px; margin: 0 auto; }
+
+    /* Add habit form */
+    .add-habit-form { display: flex; gap: 10px; margin-bottom: 28px; }
+    .add-habit-form input {
+      flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0;
+      border-radius: 10px; font-size: 0.95rem; outline: none;
+      transition: border-color 0.2s; background: #fff;
     }
-
-    .add-habit-form button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .add-habit-form input:focus { border-color: #667eea; }
+    .add-habit-form button {
+      padding: 12px 20px; background: #667eea; color: #fff; border: none;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s; white-space: nowrap;
     }
+    .add-habit-form button:hover { background: #5a67d8; }
+    .add-habit-form button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* Section label */
     .section-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #a0aec0;
-      margin-bottom: 12px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #a0aec0; margin-bottom: 12px;
     }
 
     /* Habits list */
-    .habits-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 32px;
-    }
-
+    .habits-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
     .habit-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex; align-items: center; gap: 14px; background: #fff;
+      border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       transition: box-shadow 0.2s;
     }
+    .habit-item:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+    .habit-item.done { opacity: 0.6; }
+    .habit-item.done .habit-name { text-decoration: line-through; color: #a0aec0; }
 
-    .habit-item:hover {
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    }
-
-    .habit-item.done {
-      opacity: 0.6;
-    }
-
-    .habit-item.done .habit-name {
-      text-decoration: line-through;
-      color: #a0aec0;
-    }
-
-    /* Custom checkbox */
     .habit-check {
-      width: 24px;
-      height: 24px;
-      min-width: 24px;
-      border-radius: 50%;
-      border: 2px solid #cbd5e0;
-      background: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 24px; height: 24px; min-width: 24px; border-radius: 50%;
+      border: 2px solid #cbd5e0; background: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
       transition: border-color 0.2s, background 0.2s;
     }
+    .habit-check.checked { background: #48bb78; border-color: #48bb78; }
+    .habit-check svg { display: none; }
+    .habit-check.checked svg { display: block; }
 
-    .habit-check.checked {
-      background: #48bb78;
-      border-color: #48bb78;
-    }
-
-    .habit-check svg {
-      display: none;
-    }
-
-    .habit-check.checked svg {
-      display: block;
-    }
-
-    .habit-name {
-      flex: 1;
-      font-size: 1rem;
-      font-weight: 500;
-    }
-
+    .habit-name { flex: 1; font-size: 1rem; font-weight: 500; }
     .habit-delete {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #cbd5e0;
-      padding: 4px;
-      border-radius: 6px;
-      transition: color 0.2s;
-      line-height: 0;
+      background: none; border: none; cursor: pointer; color: #cbd5e0;
+      padding: 4px; border-radius: 6px; transition: color 0.2s; line-height: 0;
     }
-
-    .habit-delete:hover {
-      color: #fc8181;
-    }
+    .habit-delete:hover { color: #fc8181; }
 
     /* Progress */
     .progress-section {
-      background: #fff;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      margin-bottom: 28px;
+      background: #fff; border-radius: 14px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 28px;
     }
-
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .progress-header span {
-      font-size: 0.9rem;
-      color: #718096;
-    }
-
-    .progress-header strong {
-      font-size: 1rem;
-      color: #2d3748;
-    }
-
-    .progress-bar-bg {
-      height: 10px;
-      background: #edf2f7;
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .progress-header span { font-size: 0.9rem; color: #718096; }
+    .progress-header strong { font-size: 1rem; color: #2d3748; }
+    .progress-bar-bg { height: 10px; background: #edf2f7; border-radius: 99px; overflow: hidden; }
     .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea, #48bb78);
-      border-radius: 99px;
-      transition: width 0.4s ease;
-      width: 0%;
+      height: 100%; background: linear-gradient(90deg, #667eea, #48bb78);
+      border-radius: 99px; transition: width 0.4s ease; width: 0%;
     }
 
-    /* ── Calendar ──────────────────────────────────────────────────── */
+    /* ── Calendar ────────────────────────────────────────────────── */
     .calendar-section {
-      background: #fff;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      margin-bottom: 28px;
+      background: #fff; border-radius: 14px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 28px;
     }
-
-    .calendar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .calendar-header h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #2d3748;
-    }
-
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .calendar-header h3 { font-size: 1rem; font-weight: 700; color: #2d3748; }
     .cal-nav {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #667eea;
-      font-size: 1.2rem;
-      padding: 4px 8px;
-      border-radius: 6px;
-      line-height: 1;
+      background: none; border: none; cursor: pointer; color: #667eea;
+      font-size: 1.2rem; padding: 4px 8px; border-radius: 6px; line-height: 1;
       transition: background 0.15s;
     }
     .cal-nav:hover { background: #ebf4ff; }
-
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-    }
-
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
     .cal-day-name {
-      text-align: center;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #a0aec0;
-      letter-spacing: 0.05em;
-      padding-bottom: 4px;
+      text-align: center; font-size: 0.7rem; font-weight: 700;
+      color: #a0aec0; letter-spacing: 0.05em; padding-bottom: 4px;
     }
-
     .cal-cell {
-      aspect-ratio: 1;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: default;
-      position: relative;
-      transition: transform 0.1s;
-      background: #f7fafc;
+      aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: default;
+      position: relative; transition: transform 0.1s; background: #f7fafc;
     }
-
-    .cal-cell.has-data {
-      cursor: pointer;
-    }
-    .cal-cell.has-data:hover {
-      transform: scale(1.08);
-    }
-
-    .cal-cell.empty {
-      background: transparent;
-    }
-
-    .cal-cell.future {
-      background: #f7fafc;
-      opacity: 0.45;
-    }
-
-    /* fill colours by completion */
+    .cal-cell.has-data { cursor: pointer; }
+    .cal-cell.has-data:hover { transform: scale(1.08); }
+    .cal-cell.empty { background: transparent; }
+    .cal-cell.future { background: #f7fafc; opacity: 0.45; }
     .cal-cell.pct-100  { background: #c6f6d5; }
-    .cal-cell.pct-high { background: #fefcbf; }  /* >=50% */
-    .cal-cell.pct-low  { background: #fed7d7; }  /* >0%  */
-    .cal-cell.pct-zero { background: #edf2f7; }  /* 0% but had habits */
-
-    .cal-cell.today {
-      outline: 2px solid #667eea;
-      outline-offset: -2px;
-    }
-
-    .cal-num {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #4a5568;
-      line-height: 1;
-    }
-
-    .cal-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      margin-top: 3px;
-    }
-
+    .cal-cell.pct-high { background: #fefcbf; }
+    .cal-cell.pct-low  { background: #fed7d7; }
+    .cal-cell.pct-zero { background: #edf2f7; }
+    .cal-cell.today { outline: 2px solid #667eea; outline-offset: -2px; }
+    .cal-num { font-size: 0.78rem; font-weight: 600; color: #4a5568; line-height: 1; }
+    .cal-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 3px; }
     .pct-100  .cal-dot { background: #38a169; }
     .pct-high .cal-dot { background: #d69e2e; }
     .pct-low  .cal-dot { background: #e53e3e; }
     .pct-zero .cal-dot { background: #a0aec0; }
-
-    /* Tooltip */
     .cal-tooltip {
-      position: absolute;
-      bottom: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: #2d3748;
-      color: #fff;
-      font-size: 0.72rem;
-      padding: 5px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 10;
+      position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); background: #2d3748; color: #fff;
+      font-size: 0.72rem; padding: 5px 8px; border-radius: 6px;
+      white-space: nowrap; pointer-events: none; opacity: 0;
+      transition: opacity 0.15s; z-index: 10;
     }
+    .cal-cell:hover .cal-tooltip { opacity: 1; }
+    .cal-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75rem; color: #718096; }
+    .cal-legend-item { display: flex; align-items: center; gap: 5px; }
+    .cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-    .cal-cell:hover .cal-tooltip {
-      opacity: 1;
+    /* ── Stats Modal ─────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 100; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
     }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
 
-    /* Legend */
-    .cal-legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-      font-size: 0.75rem;
-      color: #718096;
+    .modal {
+      background: #f0f4f8; width: 100%; max-width: 600px;
+      border-radius: 20px 20px 0 0; padding: 24px 20px 36px;
+      max-height: 90vh; overflow-y: auto;
+      transform: translateY(40px); transition: transform 0.25s;
     }
+    .modal-overlay.open .modal { transform: translateY(0); }
 
-    .cal-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    .modal-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
     }
+    .modal-top h2 { font-size: 1.25rem; font-weight: 700; color: #1a202c; }
+    .modal-close {
+      background: #e2e8f0; border: none; border-radius: 50%; width: 32px; height: 32px;
+      cursor: pointer; font-size: 1.1rem; display: flex; align-items: center;
+      justify-content: center; color: #4a5568; transition: background 0.15s;
+    }
+    .modal-close:hover { background: #cbd5e0; }
 
-    .cal-legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 3px;
+    /* Stat cards */
+    .stat-cards {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 12px; margin-bottom: 24px;
     }
+    .stat-card {
+      background: #fff; border-radius: 14px; padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center;
+    }
+    .stat-card .stat-val {
+      font-size: 1.8rem; font-weight: 800; color: #667eea; line-height: 1;
+    }
+    .stat-card .stat-label {
+      font-size: 0.75rem; color: #718096; margin-top: 5px; font-weight: 500;
+    }
+    .stat-card.green .stat-val  { color: #38a169; }
+    .stat-card.orange .stat-val { color: #dd6b20; }
+    .stat-card.red .stat-val    { color: #e53e3e; }
+
+    /* Chart containers */
+    .chart-card {
+      background: #fff; border-radius: 14px; padding: 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px;
+    }
+    .chart-card h4 {
+      font-size: 0.85rem; font-weight: 700; color: #4a5568;
+      margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .chart-wrap { position: relative; height: 180px; }
+
+    /* Modal loading */
+    .modal-loading { text-align: center; padding: 40px 0; color: #a0aec0; }
 
     /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 32px 0;
-      color: #a0aec0;
-      font-size: 0.95rem;
-    }
-
-    .empty-state span {
-      display: block;
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
+    .empty-state { text-align: center; padding: 32px 0; color: #a0aec0; font-size: 0.95rem; }
+    .empty-state span { display: block; font-size: 2.5rem; margin-bottom: 10px; }
 
     /* Status notice */
     .db-notice {
-      margin-top: 20px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 0.82rem;
-      text-align: center;
+      margin-top: 20px; padding: 12px 16px; border-radius: 10px;
+      font-size: 0.82rem; text-align: center;
     }
+    .db-notice.connected { background: #f0fff4; border: 1px dashed #68d391; color: #276749; }
+    .db-notice.error     { background: #fff5f5; border: 1px dashed #fc8181; color: #c53030; }
+    .db-notice.loading   { background: #ebf4ff; border: 1px dashed #90cdf4; color: #2b6cb0; }
 
-    .db-notice.connected {
-      background: #f0fff4;
-      border: 1px dashed #68d391;
-      color: #276749;
-    }
-
-    .db-notice.error {
-      background: #fff5f5;
-      border: 1px dashed #fc8181;
-      color: #c53030;
-    }
-
-    .db-notice.loading {
-      background: #ebf4ff;
-      border: 1px dashed #90cdf4;
-      color: #2b6cb0;
-    }
-
-    /* Loading spinner overlay on list */
-    .list-loading {
-      text-align: center;
-      padding: 32px 0;
-      color: #a0aec0;
-      font-size: 0.9rem;
-    }
+    .list-loading { text-align: center; padding: 32px 0; color: #a0aec0; font-size: 0.9rem; }
   </style>
 </head>
 <body>
@@ -426,21 +245,22 @@
   <header>
     <h1>Daily Habits</h1>
     <p class="date" id="today-date"></p>
+    <button class="stats-btn" id="stats-open-btn">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/>
+        <rect x="6" y="4" width="3" height="11" rx="1" fill="currentColor"/>
+        <rect x="11" y="1" width="3" height="14" rx="1" fill="currentColor"/>
+      </svg>
+      Stats
+    </button>
   </header>
 
   <form class="add-habit-form" id="add-form">
-    <input
-      type="text"
-      id="habit-input"
-      placeholder="Add a new habit..."
-      maxlength="80"
-      autocomplete="off"
-    />
+    <input type="text" id="habit-input" placeholder="Add a new habit..." maxlength="80" autocomplete="off" />
     <button type="submit" id="add-btn">+ Add</button>
   </form>
 
   <p class="section-label">Today's habits</p>
-
   <div class="habits-list" id="habits-list">
     <div class="list-loading">Loading...</div>
   </div>
@@ -455,9 +275,7 @@
     </div>
   </div>
 
-  <!-- ── Calendar ──────────────────────────────────────────────────── -->
   <p class="section-label">Monthly overview</p>
-
   <div class="calendar-section">
     <div class="calendar-header">
       <button class="cal-nav" id="cal-prev">&#8249;</button>
@@ -466,119 +284,103 @@
     </div>
     <div class="cal-grid" id="cal-grid"></div>
     <div class="cal-legend">
-      <div class="cal-legend-item">
-        <div class="cal-legend-dot" style="background:#c6f6d5"></div> All done
-      </div>
-      <div class="cal-legend-item">
-        <div class="cal-legend-dot" style="background:#fefcbf"></div> ≥ 50%
-      </div>
-      <div class="cal-legend-item">
-        <div class="cal-legend-dot" style="background:#fed7d7"></div> &lt; 50%
-      </div>
-      <div class="cal-legend-item">
-        <div class="cal-legend-dot" style="background:#edf2f7"></div> None done
-      </div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#c6f6d5"></div> All done</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fefcbf"></div> ≥ 50%</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fed7d7"></div> &lt; 50%</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#edf2f7"></div> None done</div>
     </div>
   </div>
 
-  <div class="db-notice loading" id="db-notice">
-    Connecting to Supabase...
+  <div class="db-notice loading" id="db-notice">Connecting to Supabase...</div>
+</div>
+
+<!-- ── Stats Modal ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="stats-modal">
+  <div class="modal">
+    <div class="modal-top">
+      <h2>Your Statistics</h2>
+      <button class="modal-close" id="stats-close-btn">&#x2715;</button>
+    </div>
+    <div id="stats-content">
+      <div class="modal-loading">Loading stats...</div>
+    </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
-  // ─── Config ───────────────────────────────────────────────────────────────
+  // ─── Config ──────────────────────────────────────────────────────────────
   const SUPABASE_URL      = 'https://sxqclccivzebonipbtlj.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cWNsY2NpdnplYm9uaXBidGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjAzNDIsImV4cCI6MjA4OTM5NjM0Mn0.v90Z1nbi6XQZ9IEjJNY6_xjV8TIAAl6EccR7o4lzaG8';
 
-  // ─── Init ─────────────────────────────────────────────────────────────────
+  // ─── Init ────────────────────────────────────────────────────────────────
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const TODAY = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const TODAY = new Date().toISOString().slice(0, 10);
 
-  const list        = document.getElementById('habits-list');
-  const progressBar = document.getElementById('progress-bar');
-  const progressText= document.getElementById('progress-text');
-  const dbNotice    = document.getElementById('db-notice');
-  const addBtn      = document.getElementById('add-btn');
+  const list         = document.getElementById('habits-list');
+  const progressBar  = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const dbNotice     = document.getElementById('db-notice');
+  const addBtn       = document.getElementById('add-btn');
 
   function setNotice(msg, type) {
     dbNotice.textContent = msg;
     dbNotice.className = `db-notice ${type}`;
   }
 
-  // ─── Data helpers ─────────────────────────────────────────────────────────
+  // ─── Data helpers ────────────────────────────────────────────────────────
   async function fetchHabits() {
-    const { data, error } = await db
-      .from('habits')
-      .select('*')
-      .eq('date', TODAY)
-      .order('created_at', { ascending: true });
+    const { data, error } = await db.from('habits').select('*').eq('date', TODAY).order('created_at', { ascending: true });
     if (error) throw error;
     return data;
   }
 
   async function fetchMonthHabits(year, month) {
-    // month is 1-based
     const from = `${year}-${String(month).padStart(2,'0')}-01`;
     const lastDay = new Date(year, month, 0).getDate();
-    const to   = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
-    const { data, error } = await db
-      .from('habits')
-      .select('date, done')
-      .gte('date', from)
-      .lte('date', to);
+    const to = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+    const { data, error } = await db.from('habits').select('date, done').gte('date', from).lte('date', to);
+    if (error) throw error;
+    return data;
+  }
+
+  async function fetchRangeHabits(from, to) {
+    const { data, error } = await db.from('habits').select('date, done').gte('date', from).lte('date', to);
     if (error) throw error;
     return data;
   }
 
   async function addHabit(name) {
-    const { data, error } = await db
-      .from('habits')
-      .insert({ name, done: false, date: TODAY })
-      .select()
-      .single();
+    const { data, error } = await db.from('habits').insert({ name, done: false, date: TODAY }).select().single();
     if (error) throw error;
     return data;
   }
 
   async function toggleHabit(id, done) {
-    const { error } = await db
-      .from('habits')
-      .update({ done })
-      .eq('id', id);
+    const { error } = await db.from('habits').update({ done }).eq('id', id);
     if (error) throw error;
   }
 
   async function deleteHabit(id) {
-    const { error } = await db
-      .from('habits')
-      .delete()
-      .eq('id', id);
+    const { error } = await db.from('habits').delete().eq('id', id);
     if (error) throw error;
   }
 
-  // ─── Render habits ────────────────────────────────────────────────────────
+  // ─── Render habits ───────────────────────────────────────────────────────
   function renderHabits(habits) {
     list.innerHTML = '';
-
     if (habits.length === 0) {
-      list.innerHTML = `
-        <div class="empty-state">
-          <span>🌱</span>
-          No habits yet — add one above!
-        </div>`;
+      list.innerHTML = `<div class="empty-state"><span>🌱</span>No habits yet — add one above!</div>`;
       updateProgress(0, 0);
       return;
     }
-
-    habits.forEach((habit) => {
+    habits.forEach(habit => {
       const item = document.createElement('div');
       item.className = 'habit-item' + (habit.done ? ' done' : '');
       item.dataset.id = habit.id;
-
       item.innerHTML = `
         <div class="habit-check ${habit.done ? 'checked' : ''}" data-id="${habit.id}" data-done="${habit.done}" role="checkbox" aria-checked="${habit.done}" tabindex="0">
           <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
@@ -590,12 +392,9 @@
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </button>
-      `;
-
+        </button>`;
       list.appendChild(item);
     });
-
     const done = habits.filter(h => h.done).length;
     updateProgress(done, habits.length);
   }
@@ -606,7 +405,7 @@
   }
 
   function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   async function reload() {
@@ -621,16 +420,14 @@
     renderCalendar();
   }
 
-  // ─── Calendar ─────────────────────────────────────────────────────────────
-  let calYear, calMonth; // 1-based month
+  // ─── Calendar ────────────────────────────────────────────────────────────
+  let calYear, calMonth;
 
   async function renderCalendar() {
     const grid  = document.getElementById('cal-grid');
     const label = document.getElementById('cal-month-label');
-
     const monthData = await fetchMonthHabits(calYear, calMonth);
 
-    // Build per-day map: { 'YYYY-MM-DD': { total, done } }
     const dayMap = {};
     for (const row of monthData) {
       if (!dayMap[row.date]) dayMap[row.date] = { total: 0, done: 0 };
@@ -638,12 +435,9 @@
       if (row.done) dayMap[row.date].done++;
     }
 
-    const monthName = new Date(calYear, calMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    label.textContent = monthName;
-
+    label.textContent = new Date(calYear, calMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     grid.innerHTML = '';
 
-    // Day-of-week headers
     ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
       const el = document.createElement('div');
       el.className = 'cal-day-name';
@@ -651,28 +445,24 @@
       grid.appendChild(el);
     });
 
-    const firstDow = new Date(calYear, calMonth - 1, 1).getDay(); // 0=Sun
+    const firstDow    = new Date(calYear, calMonth - 1, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth, 0).getDate();
 
-    // Empty leading cells
     for (let i = 0; i < firstDow; i++) {
       const el = document.createElement('div');
       el.className = 'cal-cell empty';
       grid.appendChild(el);
     }
 
-    const todayStr = TODAY;
-
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isFuture = dateStr > todayStr;
-      const isToday  = dateStr === todayStr;
+      const dateStr  = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isFuture = dateStr > TODAY;
+      const isToday  = dateStr === TODAY;
       const info = dayMap[dateStr];
 
       const cell = document.createElement('div');
       cell.className = 'cal-cell';
-
-      if (isToday) cell.classList.add('today');
+      if (isToday)  cell.classList.add('today');
 
       if (isFuture) {
         cell.classList.add('future');
@@ -705,13 +495,194 @@
     }
   }
 
-  // ─── Events ───────────────────────────────────────────────────────────────
+  // ─── Stats Modal ─────────────────────────────────────────────────────────
+  let chartLine = null, chartBar = null;
+
+  function dateOffset(days) {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  async function openStats() {
+    document.getElementById('stats-modal').classList.add('open');
+    const content = document.getElementById('stats-content');
+    content.innerHTML = '<div class="modal-loading">Loading stats...</div>';
+
+    // Destroy old charts if any
+    if (chartLine) { chartLine.destroy(); chartLine = null; }
+    if (chartBar)  { chartBar.destroy();  chartBar  = null; }
+
+    try {
+      const from = dateOffset(-89); // 90 days back
+      const rows = await fetchRangeHabits(from, TODAY);
+
+      // Build per-day map
+      const dayMap = {};
+      for (const row of rows) {
+        if (!dayMap[row.date]) dayMap[row.date] = { total: 0, done: 0 };
+        dayMap[row.date].total++;
+        if (row.done) dayMap[row.date].done++;
+      }
+
+      // ── Compute summary stats ────────────────────────────────────
+      const activeDays = Object.keys(dayMap).sort();
+
+      // Total habits completed all time (use all rows from DB, but we only have 90d)
+      const totalDone = rows.filter(r => r.done).length;
+
+      // Average this month
+      const thisMonthDays = activeDays.filter(d => d.startsWith(TODAY.slice(0, 7)));
+      const thisMonthAvg = thisMonthDays.length > 0
+        ? Math.round(thisMonthDays.reduce((s, d) => {
+            const { total, done } = dayMap[d];
+            return s + (total > 0 ? done / total : 0);
+          }, 0) / thisMonthDays.length * 100)
+        : 0;
+
+      // Current streak (consecutive days ending on today with >0 done)
+      let streak = 0;
+      let cur = new Date(TODAY);
+      while (true) {
+        const ds = cur.toISOString().slice(0, 10);
+        const info = dayMap[ds];
+        if (info && info.done > 0) {
+          streak++;
+          cur.setDate(cur.getDate() - 1);
+        } else break;
+      }
+
+      // Best streak in the 90-day window
+      let best = 0, run = 0;
+      for (const d of activeDays) {
+        if (dayMap[d].done > 0) { run++; best = Math.max(best, run); }
+        else run = 0;
+      }
+
+      // ── Last 30 days line chart data ─────────────────────────────
+      const last30Labels = [];
+      const last30Data   = [];
+      for (let i = 29; i >= 0; i--) {
+        const ds = dateOffset(-i);
+        last30Labels.push(ds.slice(5)); // MM-DD
+        const info = dayMap[ds];
+        last30Data.push(info && info.total > 0 ? Math.round(info.done / info.total * 100) : null);
+      }
+
+      // ── Day-of-week averages bar chart ───────────────────────────
+      const dowTotals = Array(7).fill(0);
+      const dowCounts = Array(7).fill(0);
+      for (const d of activeDays) {
+        const dow = new Date(d).getDay();
+        const { total, done } = dayMap[d];
+        if (total > 0) { dowTotals[dow] += done / total; dowCounts[dow]++; }
+      }
+      const dowAvg = dowTotals.map((t, i) => dowCounts[i] > 0 ? Math.round(t / dowCounts[i] * 100) : 0);
+
+      // ── Render ───────────────────────────────────────────────────
+      content.innerHTML = `
+        <div class="stat-cards">
+          <div class="stat-card green">
+            <div class="stat-val">${streak}</div>
+            <div class="stat-label">Current streak (days)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">${best}</div>
+            <div class="stat-label">Best streak (90 days)</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-val">${thisMonthAvg}%</div>
+            <div class="stat-label">Avg this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">${totalDone}</div>
+            <div class="stat-label">Habits done (90 days)</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4>Last 30 days — completion %</h4>
+          <div class="chart-wrap"><canvas id="chart-line"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <h4>Best days of the week</h4>
+          <div class="chart-wrap"><canvas id="chart-bar"></canvas></div>
+        </div>
+      `;
+
+      // Line chart
+      chartLine = new Chart(document.getElementById('chart-line'), {
+        type: 'line',
+        data: {
+          labels: last30Labels,
+          datasets: [{
+            label: 'Completion %',
+            data: last30Data,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102,126,234,0.12)',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            tension: 0.35,
+            fill: true,
+            spanGaps: true,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#edf2f7' } },
+            x: { ticks: { maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } } }
+        }
+      });
+
+      // Bar chart
+      const dowColors = dowAvg.map(v => v >= 80 ? '#48bb78' : v >= 50 ? '#f6ad55' : '#fc8181');
+      chartBar = new Chart(document.getElementById('chart-bar'), {
+        type: 'bar',
+        data: {
+          labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+          datasets: [{
+            label: 'Avg %',
+            data: dowAvg,
+            backgroundColor: dowColors,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#edf2f7' } },
+            x: { ticks: { font: { size: 12 } }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } } }
+        }
+      });
+
+    } catch (err) {
+      content.innerHTML = `<div class="empty-state"><span>⚠️</span>Could not load statistics.<br><small>${err.message}</small></div>`;
+    }
+  }
+
+  function closeStats() {
+    document.getElementById('stats-modal').classList.remove('open');
+  }
+
+  document.getElementById('stats-open-btn').addEventListener('click', openStats);
+  document.getElementById('stats-close-btn').addEventListener('click', closeStats);
+  document.getElementById('stats-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('stats-modal')) closeStats();
+  });
+
+  // ─── Events ──────────────────────────────────────────────────────────────
   document.getElementById('add-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('habit-input');
     const name = input.value.trim();
     if (!name) return;
-
     addBtn.disabled = true;
     try {
       await addHabit(name);
@@ -725,54 +696,36 @@
   });
 
   list.addEventListener('click', async (e) => {
-    const checkEl = e.target.closest('.habit-check');
+    const checkEl  = e.target.closest('.habit-check');
     const deleteEl = e.target.closest('.habit-delete');
-
     if (checkEl) {
       const id = checkEl.dataset.id;
       const newDone = checkEl.dataset.done !== 'true';
-      try {
-        await toggleHabit(id, newDone);
-        await reload();
-      } catch (err) {
-        setNotice(`Failed to update habit: ${err.message}`, 'error');
-      }
+      try { await toggleHabit(id, newDone); await reload(); }
+      catch (err) { setNotice(`Failed to update habit: ${err.message}`, 'error'); }
     }
-
     if (deleteEl) {
       const id = deleteEl.dataset.id;
-      try {
-        await deleteHabit(id);
-        await reload();
-      } catch (err) {
-        setNotice(`Failed to delete habit: ${err.message}`, 'error');
-      }
+      try { await deleteHabit(id); await reload(); }
+      catch (err) { setNotice(`Failed to delete habit: ${err.message}`, 'error'); }
     }
   });
 
   list.addEventListener('keydown', (e) => {
     if (e.key === ' ' || e.key === 'Enter') {
       const checkEl = e.target.closest('.habit-check');
-      if (checkEl) {
-        e.preventDefault();
-        checkEl.click();
-      }
+      if (checkEl) { e.preventDefault(); checkEl.click(); }
     }
   });
 
   document.getElementById('cal-prev').addEventListener('click', () => {
-    calMonth--;
-    if (calMonth < 1) { calMonth = 12; calYear--; }
-    renderCalendar();
+    calMonth--; if (calMonth < 1) { calMonth = 12; calYear--; } renderCalendar();
   });
-
   document.getElementById('cal-next').addEventListener('click', () => {
-    calMonth++;
-    if (calMonth > 12) { calMonth = 1; calYear++; }
-    renderCalendar();
+    calMonth++; if (calMonth > 12) { calMonth = 1; calYear++; } renderCalendar();
   });
 
-  // ─── Boot ─────────────────────────────────────────────────────────────────
+  // ─── Boot ────────────────────────────────────────────────────────────────
   document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
