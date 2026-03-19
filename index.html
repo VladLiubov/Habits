@@ -359,6 +359,32 @@
     return data;
   }
 
+  // Find the most recent past day that has habits and copy them to today (unchecked)
+  async function carryForwardHabits() {
+    // Step 1: find the most recent past date with habits
+    const { data: latest, error: e1 } = await db
+      .from('habits')
+      .select('date')
+      .lt('date', TODAY)
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
+    if (e1 || !latest) return; // no past habits at all
+
+    // Step 2: fetch that day's habit names in creation order
+    const { data: prevHabits, error: e2 } = await db
+      .from('habits')
+      .select('name, created_at')
+      .eq('date', latest.date)
+      .order('created_at', { ascending: true });
+    if (e2 || !prevHabits || prevHabits.length === 0) return;
+
+    // Step 3: insert them for today, all unchecked
+    const rows = prevHabits.map(h => ({ name: h.name, done: false, date: TODAY }));
+    const { error: e3 } = await db.from('habits').insert(rows);
+    if (e3) throw e3;
+  }
+
   async function toggleHabit(id, done) {
     const { error } = await db.from('habits').update({ done }).eq('id', id);
     if (error) throw error;
@@ -410,7 +436,12 @@
 
   async function reload() {
     try {
-      const habits = await fetchHabits();
+      let habits = await fetchHabits();
+      // First visit of the day — carry habits forward from the most recent past day
+      if (habits.length === 0) {
+        await carryForwardHabits();
+        habits = await fetchHabits();
+      }
       renderHabits(habits);
       setNotice('Connected to Supabase', 'connected');
     } catch (err) {
