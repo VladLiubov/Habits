@@ -332,8 +332,20 @@
   }
 
   // ─── Data helpers ────────────────────────────────────────────────────────
+  // '0001-01-01' is used as a sentinel date to store the static habit list (templates).
+  // These rows are never shown as daily habits — they just define which habits exist.
+  const TEMPLATE_DATE = '0001-01-01';
+
+  async function fetchTemplates() {
+    const { data, error } = await db
+      .from('habits').select('*').eq('date', TEMPLATE_DATE).order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  }
+
   async function fetchHabits() {
-    const { data, error } = await db.from('habits').select('*').eq('date', TODAY).order('created_at', { ascending: true });
+    const { data, error } = await db
+      .from('habits').select('*').eq('date', TODAY).order('created_at', { ascending: true });
     if (error) throw error;
     return data;
   }
@@ -342,19 +354,56 @@
     const from = `${year}-${String(month).padStart(2,'0')}-01`;
     const lastDay = new Date(year, month, 0).getDate();
     const to = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
-    const { data, error } = await db.from('habits').select('date, done').gte('date', from).lte('date', to);
+    const { data, error } = await db
+      .from('habits').select('date, done').gte('date', from).lte('date', to);
     if (error) throw error;
     return data;
   }
 
   async function fetchRangeHabits(from, to) {
-    const { data, error } = await db.from('habits').select('date, done').gte('date', from).lte('date', to);
+    const { data, error } = await db
+      .from('habits').select('date, done').gte('date', from).lte('date', to);
     if (error) throw error;
     return data;
   }
 
+  // On each app load: make sure today has a row for every template habit.
+  // Also seeds templates from the most recent past day if templates are empty.
+  async function syncToday() {
+    let templates = await fetchTemplates();
+
+    // First-ever launch: seed templates from most recent past day (migration)
+    if (templates.length === 0) {
+      const { data: latest } = await db
+        .from('habits').select('date').gt('date', TEMPLATE_DATE).lt('date', TODAY)
+        .order('date', { ascending: false }).limit(1).single();
+      if (latest) {
+        const { data: prev } = await db
+          .from('habits').select('name, created_at')
+          .eq('date', latest.date).order('created_at', { ascending: true });
+        if (prev && prev.length > 0) {
+          await db.from('habits').insert(prev.map(h => ({ name: h.name, done: false, date: TEMPLATE_DATE })));
+          templates = await fetchTemplates();
+        }
+      }
+    }
+
+    if (templates.length === 0) return; // no habits defined yet
+
+    // Ensure every template habit has a record for today
+    const { data: todayRows } = await db.from('habits').select('name').eq('date', TODAY);
+    const todayNames = new Set((todayRows || []).map(h => h.name));
+    const missing = templates.filter(t => !todayNames.has(t.name));
+    if (missing.length > 0) {
+      await db.from('habits').insert(missing.map(t => ({ name: t.name, done: false, date: TODAY })));
+    }
+  }
+
+  // Add a habit: create the template + today's record
   async function addHabit(name) {
-    const { data, error } = await db.from('habits').insert({ name, done: false, date: TODAY }).select().single();
+    await db.from('habits').insert({ name, done: false, date: TEMPLATE_DATE });
+    const { data, error } = await db
+      .from('habits').insert({ name, done: false, date: TODAY }).select().single();
     if (error) throw error;
     return data;
   }
@@ -364,7 +413,12 @@
     if (error) throw error;
   }
 
+  // Delete: remove from template list + today (keep past days for stats/calendar)
   async function deleteHabit(id) {
+    const { data: habit } = await db.from('habits').select('name').eq('id', id).single();
+    if (habit) {
+      await db.from('habits').delete().eq('date', TEMPLATE_DATE).eq('name', habit.name);
+    }
     const { error } = await db.from('habits').delete().eq('id', id);
     if (error) throw error;
   }
@@ -410,6 +464,7 @@
 
   async function reload() {
     try {
+      await syncToday();
       const habits = await fetchHabits();
       renderHabits(habits);
       setNotice('Connected to Supabase', 'connected');
