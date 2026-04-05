@@ -24,6 +24,19 @@
     header h1 { font-size: 2rem; font-weight: 700; color: #1a202c; }
     header p.date { margin-top: 6px; font-size: 1rem; color: #718096; }
 
+    /* Lang switcher */
+    .lang-switcher {
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      display: flex; gap: 4px;
+    }
+    .lang-btn {
+      background: #e2e8f0; border: none; border-radius: 7px; padding: 5px 9px;
+      font-size: 0.78rem; font-weight: 700; cursor: pointer; color: #718096;
+      transition: all 0.15s;
+    }
+    .lang-btn:hover { background: #cbd5e0; }
+    .lang-btn.active { background: #667eea; color: #fff; }
+
     /* Stats button in header */
     .stats-btn {
       position: absolute;
@@ -258,7 +271,11 @@
 
 <div class="container">
   <header>
-    <h1>Daily Habits</h1>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ua">UA</button>
+    </div>
+    <h1 id="app-title">Daily Habits</h1>
     <p class="date" id="today-date"></p>
     <button class="stats-btn" id="stats-open-btn">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -266,29 +283,29 @@
         <rect x="6" y="4" width="3" height="11" rx="1" fill="currentColor"/>
         <rect x="11" y="1" width="3" height="14" rx="1" fill="currentColor"/>
       </svg>
-      Stats
+      <span data-i18n="stats">Stats</span>
     </button>
   </header>
 
   <div class="user-switcher" id="user-switcher">
-    <button class="user-btn active" data-user="me"><span class="user-avatar">🧑</span>Me</button>
-    <button class="user-btn" data-user="sister"><span class="user-avatar">👧</span>Sister</button>
-    <button class="user-btn" data-user="mother"><span class="user-avatar">👩</span>Mother</button>
+    <button class="user-btn active" data-user="me"><span class="user-avatar">🧑</span><span data-i18n="me">Me</span></button>
+    <button class="user-btn" data-user="sister"><span class="user-avatar">👧</span><span data-i18n="sister">Sister</span></button>
+    <button class="user-btn" data-user="mother"><span class="user-avatar">👩</span><span data-i18n="mother">Mother</span></button>
   </div>
 
   <form class="add-habit-form" id="add-form">
     <input type="text" id="habit-input" placeholder="Add a new habit..." maxlength="80" autocomplete="off" />
-    <button type="submit" id="add-btn">+ Add</button>
+    <button type="submit" id="add-btn" data-i18n="add">+ Add</button>
   </form>
 
-  <p class="section-label">Today's habits</p>
+  <p class="section-label" data-i18n="todaysHabits">Today's habits</p>
   <div class="habits-list" id="habits-list">
-    <div class="list-loading">Loading...</div>
+    <div class="list-loading" data-i18n="loading">Loading...</div>
   </div>
 
   <div class="progress-section">
     <div class="progress-header">
-      <span>Progress</span>
+      <span data-i18n="progress">Progress</span>
       <strong id="progress-text">0 / 0</strong>
     </div>
     <div class="progress-bar-bg">
@@ -296,7 +313,7 @@
     </div>
   </div>
 
-  <p class="section-label">Monthly overview</p>
+  <p class="section-label" data-i18n="monthlyOverview">Monthly overview</p>
   <div class="calendar-section">
     <div class="calendar-header">
       <button class="cal-nav" id="cal-prev">&#8249;</button>
@@ -305,25 +322,25 @@
     </div>
     <div class="cal-grid" id="cal-grid"></div>
     <div class="cal-legend">
-      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#c6f6d5"></div> All done</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#c6f6d5"></div> <span data-i18n="allDone">All done</span></div>
       <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fefcbf"></div> ≥ 50%</div>
       <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fed7d7"></div> &lt; 50%</div>
-      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#edf2f7"></div> None done</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#edf2f7"></div> <span data-i18n="noneDone">None done</span></div>
     </div>
   </div>
 
-  <div class="db-notice loading" id="db-notice">Connecting to Supabase...</div>
+  <div class="db-notice loading" id="db-notice" data-i18n="connecting">Connecting to Supabase...</div>
 </div>
 
 <!-- ── Stats Modal ─────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="stats-modal">
   <div class="modal">
     <div class="modal-top">
-      <h2>Your Statistics</h2>
+      <h2 data-i18n="yourStats">Your Statistics</h2>
       <button class="modal-close" id="stats-close-btn">&#x2715;</button>
     </div>
     <div id="stats-content">
-      <div class="modal-loading">Loading stats...</div>
+      <div class="modal-loading" data-i18n="loadingStats">Loading stats...</div>
     </div>
   </div>
 </div>
@@ -331,6 +348,79 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
+  // ─── i18n ────────────────────────────────────────────────────────────────
+  const TRANSLATIONS = {
+    en: {
+      appTitle: 'Daily Habits',
+      stats: 'Stats', me: 'Me', sister: 'Sister', mother: 'Mother',
+      add: '+ Add', todaysHabits: "Today's habits", loading: 'Loading...',
+      progress: 'Progress', monthlyOverview: 'Monthly overview',
+      allDone: 'All done', noneDone: 'None done',
+      connecting: 'Connecting to Supabase...',
+      yourStats: 'Your Statistics', loadingStats: 'Loading stats...',
+      noHabits: 'No habits yet — add one above!',
+      couldNotLoad: 'Could not load habits.',
+      currentStreak: 'Current streak (days)', bestStreak: 'Best streak (90 days)',
+      avgMonth: 'Avg this month', habitsDone: 'Habits done (90 days)',
+      last30: 'Last 30 days — completion %', bestDays: 'Best days of the week',
+      placeholder: 'Add a new habit...',
+      dateLocale: 'en-US',
+      calDays: ['Su','Mo','Tu','We','Th','Fr','Sa'],
+      calDaysFull: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    },
+    ua: {
+      appTitle: 'Щоденні звички',
+      stats: 'Статистика', me: 'Я', sister: 'Сестра', mother: 'Мама',
+      add: '+ Додати', todaysHabits: 'Звички на сьогодні', loading: 'Завантаження...',
+      progress: 'Прогрес', monthlyOverview: 'Огляд місяця',
+      allDone: 'Все виконано', noneDone: 'Нічого не виконано',
+      connecting: 'Підключення до Supabase...',
+      yourStats: 'Ваша статистика', loadingStats: 'Завантаження статистики...',
+      noHabits: 'Ще немає звичок — додайте вище!',
+      couldNotLoad: 'Не вдалося завантажити звички.',
+      currentStreak: 'Поточна серія (днів)', bestStreak: 'Найкраща серія (90 днів)',
+      avgMonth: 'Середнє цього місяця', habitsDone: 'Виконано звичок (90 днів)',
+      last30: 'Останні 30 днів — виконання %', bestDays: 'Найкращі дні тижня',
+      placeholder: 'Додати нову звичку...',
+      dateLocale: 'uk-UA',
+      calDays: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
+      calDaysFull: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
+    }
+  };
+
+  let currentLang = localStorage.getItem('lang') || 'en';
+
+  function t(key) { return TRANSLATIONS[currentLang][key] || TRANSLATIONS.en[key] || key; }
+
+  function applyLang() {
+    document.getElementById('app-title').textContent = t('appTitle');
+    document.getElementById('habit-input').placeholder = t('placeholder');
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (el.id !== 'db-notice' || el.classList.contains('loading')) {
+        el.textContent = t(key);
+      }
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === currentLang);
+    });
+  }
+
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    applyLang();
+    // Re-render things that depend on locale
+    document.getElementById('today-date').textContent = new Date().toLocaleDateString(t('dateLocale'), {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    renderCalendar();
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => { if (btn.dataset.lang !== currentLang) setLang(btn.dataset.lang); });
+  });
+
   // ─── Config ──────────────────────────────────────────────────────────────
   const SUPABASE_URL      = 'https://sxqclccivzebonipbtlj.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cWNsY2NpdnplYm9uaXBidGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjAzNDIsImV4cCI6MjA4OTM5NjM0Mn0.v90Z1nbi6XQZ9IEjJNY6_xjV8TIAAl6EccR7o4lzaG8';
@@ -465,7 +555,7 @@
   function renderHabits(habits) {
     list.innerHTML = '';
     if (habits.length === 0) {
-      list.innerHTML = `<div class="empty-state"><span>🌱</span>No habits yet — add one above!</div>`;
+      list.innerHTML = `<div class="empty-state"><span>🌱</span>${t('noHabits')}</div>`;
       updateProgress(0, 0);
       return;
     }
@@ -507,7 +597,7 @@
       renderHabits(habits);
       setNotice('Connected to Supabase', 'connected');
     } catch (err) {
-      list.innerHTML = `<div class="empty-state"><span>⚠️</span>Could not load habits.</div>`;
+      list.innerHTML = `<div class="empty-state"><span>⚠️</span>${t('couldNotLoad')}</div>`;
       setNotice(`Supabase error: ${err.message}`, 'error');
     }
     renderCalendar();
@@ -528,10 +618,10 @@
       if (row.done) dayMap[row.date].done++;
     }
 
-    label.textContent = new Date(calYear, calMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    label.textContent = new Date(calYear, calMonth - 1, 1).toLocaleDateString(t('dateLocale'), { month: 'long', year: 'numeric' });
     grid.innerHTML = '';
 
-    ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+    t('calDays').forEach(d => {
       const el = document.createElement('div');
       el.className = 'cal-day-name';
       el.textContent = d;
@@ -677,29 +767,29 @@
         <div class="stat-cards">
           <div class="stat-card green">
             <div class="stat-val">${streak}</div>
-            <div class="stat-label">Current streak (days)</div>
+            <div class="stat-label">${t('currentStreak')}</div>
           </div>
           <div class="stat-card">
             <div class="stat-val">${best}</div>
-            <div class="stat-label">Best streak (90 days)</div>
+            <div class="stat-label">${t('bestStreak')}</div>
           </div>
           <div class="stat-card orange">
             <div class="stat-val">${thisMonthAvg}%</div>
-            <div class="stat-label">Avg this month</div>
+            <div class="stat-label">${t('avgMonth')}</div>
           </div>
           <div class="stat-card">
             <div class="stat-val">${totalDone}</div>
-            <div class="stat-label">Habits done (90 days)</div>
+            <div class="stat-label">${t('habitsDone')}</div>
           </div>
         </div>
 
         <div class="chart-card">
-          <h4>Last 30 days — completion %</h4>
+          <h4>${t('last30')}</h4>
           <div class="chart-wrap"><canvas id="chart-line"></canvas></div>
         </div>
 
         <div class="chart-card">
-          <h4>Best days of the week</h4>
+          <h4>${t('bestDays')}</h4>
           <div class="chart-wrap"><canvas id="chart-bar"></canvas></div>
         </div>
       `;
@@ -737,7 +827,7 @@
       chartBar = new Chart(document.getElementById('chart-bar'), {
         type: 'bar',
         data: {
-          labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+          labels: t('calDaysFull'),
           datasets: [{
             label: 'Avg %',
             data: dowAvg,
@@ -819,7 +909,7 @@
   });
 
   // ─── Boot ────────────────────────────────────────────────────────────────
-  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', {
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString(t('dateLocale'), {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
@@ -831,6 +921,8 @@
   document.querySelectorAll('.user-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.user === currentUser);
   });
+
+  applyLang();
 
   if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
     list.innerHTML = `<div class="empty-state"><span>🔧</span>Set your Supabase credentials in index.html to get started.</div>`;
