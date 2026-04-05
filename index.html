@@ -37,27 +37,79 @@
     .lang-btn:hover { background: #cbd5e0; }
     .lang-btn.active { background: #667eea; color: #fff; }
 
-    /* Stats button in header */
+    /* Header action buttons */
+    .header-actions {
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      display: flex; gap: 6px;
+    }
     .stats-btn {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      background: #667eea;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 9px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
+      background: #667eea; color: #fff; border: none; border-radius: 10px;
+      padding: 9px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: background 0.2s;
     }
     .stats-btn:hover { background: #5a67d8; }
     .stats-btn svg { flex-shrink: 0; }
+    .trophy-btn { background: #ed8936; }
+    .trophy-btn:hover { background: #dd6b20; }
+
+    /* Day preview modal */
+    .day-preview-date {
+      font-size: 0.9rem; color: #718096; margin-bottom: 16px;
+      padding-bottom: 14px; border-bottom: 1px solid #e2e8f0;
+    }
+    .preview-habit {
+      display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid #f0f4f8;
+    }
+    .preview-habit:last-child { border-bottom: none; }
+    .preview-check {
+      width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
+      border: 2px solid #cbd5e0; margin-top: 2px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-check.done { background: #48bb78; border-color: #48bb78; }
+    .preview-check.done::after { content: '✓'; color: #fff; font-size: 0.7rem; font-weight: 700; }
+    .preview-habit-info { flex: 1; }
+    .preview-habit-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+    .preview-habit-name.done { text-decoration: line-through; color: #a0aec0; }
+
+    /* Tournament modal */
+    .tournament-month-nav {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+    }
+    .tournament-month-nav h3 { font-size: 1rem; font-weight: 700; }
+    .podium {
+      display: flex; align-items: flex-end; justify-content: center;
+      gap: 12px; margin-bottom: 24px; padding: 16px 0;
+    }
+    .podium-place {
+      display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
+    }
+    .podium-avatar { font-size: 2rem; }
+    .podium-name { font-weight: 700; font-size: 0.9rem; text-align: center; }
+    .podium-pct { font-size: 0.8rem; color: #718096; }
+    .podium-block {
+      width: 100%; border-radius: 10px 10px 0 0; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 800; color: #fff; min-height: 40px;
+    }
+    .podium-place.first  .podium-block { background: #f6ad55; height: 90px; }
+    .podium-place.second .podium-block { background: #a0aec0; height: 65px; }
+    .podium-place.third  .podium-block { background: #b7791f; height: 45px; }
+    .points-table {
+      background: #fff; border-radius: 14px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px;
+    }
+    .points-row {
+      display: flex; align-items: center; padding: 13px 16px; gap: 12px;
+      border-bottom: 1px solid #f0f4f8;
+    }
+    .points-row:last-child { border-bottom: none; }
+    .points-row.header { background: #f7fafc; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; color: #a0aec0; }
+    .points-rank { width: 24px; text-align: center; font-weight: 700; }
+    .points-user { flex: 1; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .points-val { font-weight: 700; color: #667eea; min-width: 40px; text-align: right; }
 
     .container { max-width: 600px; margin: 0 auto; }
 
@@ -319,14 +371,17 @@
     </div>
     <h1 id="app-title">Daily Habits</h1>
     <p class="date" id="today-date"></p>
-    <button class="stats-btn" id="stats-open-btn">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/>
-        <rect x="6" y="4" width="3" height="11" rx="1" fill="currentColor"/>
-        <rect x="11" y="1" width="3" height="14" rx="1" fill="currentColor"/>
-      </svg>
-      <span data-i18n="stats">Stats</span>
-    </button>
+    <div class="header-actions">
+      <button class="stats-btn" id="stats-open-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/>
+          <rect x="6" y="4" width="3" height="11" rx="1" fill="currentColor"/>
+          <rect x="11" y="1" width="3" height="14" rx="1" fill="currentColor"/>
+        </svg>
+        <span data-i18n="stats">Stats</span>
+      </button>
+      <button class="stats-btn trophy-btn" id="tournament-btn">🏆</button>
+    </div>
   </header>
 
   <div class="user-switcher" id="user-switcher">
@@ -418,6 +473,34 @@
   </div>
 </div>
 
+<!-- ── Day Preview Modal ────────────────────────────────────────────── -->
+<div class="modal-overlay" id="day-modal">
+  <div class="modal">
+    <div class="modal-top">
+      <h2 id="day-modal-title"></h2>
+      <button class="modal-close" id="day-close-btn">&#x2715;</button>
+    </div>
+    <div class="day-preview-date" id="day-modal-date"></div>
+    <div id="day-modal-content"></div>
+  </div>
+</div>
+
+<!-- ── Tournament Modal ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="tournament-modal">
+  <div class="modal">
+    <div class="modal-top">
+      <h2 id="tournament-title">🏆 Tournament</h2>
+      <button class="modal-close" id="tournament-close-btn">&#x2715;</button>
+    </div>
+    <div class="tournament-month-nav">
+      <button class="cal-nav" id="trn-prev">&#8249;</button>
+      <h3 id="trn-month-label"></h3>
+      <button class="cal-nav" id="trn-next">&#8250;</button>
+    </div>
+    <div id="tournament-content"><div class="modal-loading">Loading...</div></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
@@ -440,6 +523,7 @@
       logHabit: 'Log habit', markDone: 'Mark as done', skip: 'Skip',
       duration: 'Duration (min)', time: 'Time', note: 'Note (optional)',
       whatDidYouDo: 'What did you do?',
+      dayPreview: 'Day summary', allTimePoints: 'All-time points (6 mo)',
       dateLocale: 'en-US',
       calDays: ['Su','Mo','Tu','We','Th','Fr','Sa'],
       calDaysFull: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
@@ -461,6 +545,7 @@
       logHabit: 'Записати звичку', markDone: 'Відмітити виконано', skip: 'Пропустити',
       duration: 'Тривалість (хв)', time: 'Час', note: 'Нотатка (необов\'язково)',
       whatDidYouDo: 'Що ви робили?',
+      dayPreview: 'Підсумок дня', allTimePoints: 'Загальні очки (6 міс)',
       dateLocale: 'uk-UA',
       calDays: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
       calDaysFull: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
@@ -821,9 +906,199 @@
         cell.appendChild(dot);
       }
 
+      // Click on a past day with data → open preview
+      if (!isFuture && info) {
+        cell.addEventListener('click', () => openDayPreview(dateStr));
+      }
+
       grid.appendChild(cell);
     }
   }
+
+  // ─── Day Preview Modal ───────────────────────────────────────────────────
+  async function openDayPreview(dateStr) {
+    document.getElementById('day-modal').classList.add('open');
+    document.getElementById('day-modal-title').textContent = t('dayPreview');
+    document.getElementById('day-modal-date').textContent =
+      new Date(dateStr + 'T12:00:00').toLocaleDateString(t('dateLocale'), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const content = document.getElementById('day-modal-content');
+    content.innerHTML = `<div class="modal-loading">${t('loading')}</div>`;
+
+    const { data, error } = await db.from('habits').select('*')
+      .eq('date', dateStr).eq('user_name', currentUser).order('created_at', { ascending: true });
+
+    if (error || !data) { content.innerHTML = `<p style="color:#e53e3e">${error?.message}</p>`; return; }
+    if (data.length === 0) { content.innerHTML = `<div class="empty-state"><span>🌱</span>${t('noHabits')}</div>`; return; }
+
+    content.innerHTML = data.map(h => {
+      const badges = [];
+      if (h.duration_minutes) badges.push(`⏱ ${h.duration_minutes} min`);
+      if (h.completed_time)   badges.push(`🕐 ${h.completed_time.slice(0,5)}`);
+      if (h.note)             badges.push(`📝 ${escapeHtml(h.note)}`);
+      return `
+        <div class="preview-habit">
+          <div class="preview-check ${h.done ? 'done' : ''}"></div>
+          <div class="preview-habit-info">
+            <div class="preview-habit-name ${h.done ? 'done' : ''}">${escapeHtml(h.name)}</div>
+            ${badges.length ? `<div class="habit-meta">${badges.map(b => `<span class="habit-badge">${b}</span>`).join('')}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('day-close-btn').addEventListener('click', () =>
+    document.getElementById('day-modal').classList.remove('open'));
+  document.getElementById('day-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('day-modal'))
+      document.getElementById('day-modal').classList.remove('open');
+  });
+
+  // ─── Tournament Modal ────────────────────────────────────────────────────
+  const USERS_CONFIG = [
+    { id: 'me',     label: 'Vlad', avatar: '🧑' },
+    { id: 'sister', label: 'Lena', avatar: '👧' },
+    { id: 'mother', label: 'Nata', avatar: '👩' },
+  ];
+
+  let trnYear, trnMonth;
+
+  async function openTournament() {
+    document.getElementById('tournament-modal').classList.add('open');
+    const now = new Date();
+    trnYear  = now.getFullYear();
+    trnMonth = now.getMonth() + 1;
+    await renderTournament();
+  }
+
+  async function renderTournament() {
+    const label = document.getElementById('trn-month-label');
+    const content = document.getElementById('tournament-content');
+    label.textContent = new Date(trnYear, trnMonth - 1, 1)
+      .toLocaleDateString(t('dateLocale'), { month: 'long', year: 'numeric' });
+    content.innerHTML = `<div class="modal-loading">${t('loading')}</div>`;
+
+    const from = `${trnYear}-${String(trnMonth).padStart(2,'0')}-01`;
+    const lastDay = new Date(trnYear, trnMonth, 0).getDate();
+    const to = `${trnYear}-${String(trnMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+    const { data, error } = await db.from('habits').select('user_name, done')
+      .gte('date', from).lte('date', to).gt('date', TEMPLATE_DATE);
+    if (error) { content.innerHTML = `<p style="color:#e53e3e">${error.message}</p>`; return; }
+
+    // Compute per-user completion %
+    const stats = {};
+    for (const u of USERS_CONFIG) stats[u.id] = { total: 0, done: 0 };
+    for (const row of data) {
+      if (!stats[row.user_name]) continue;
+      stats[row.user_name].total++;
+      if (row.done) stats[row.user_name].done++;
+    }
+
+    const ranked = USERS_CONFIG
+      .map(u => ({ ...u, pct: stats[u.id].total > 0 ? Math.round(stats[u.id].done / stats[u.id].total * 100) : 0 }))
+      .sort((a, b) => b.pct - a.pct);
+
+    // Assign points (handle ties)
+    const pointMap = [3, 2, 1];
+    let pts = {};
+    ranked.forEach((u, i) => {
+      // if tied with previous, give same points
+      const prevPct = i > 0 ? ranked[i-1].pct : null;
+      pts[u.id] = prevPct !== null && u.pct === prevPct ? pts[ranked[i-1].id] : pointMap[i] ?? 1;
+    });
+
+    // Podium order: 2nd, 1st, 3rd
+    const podiumOrder = [ranked[1], ranked[0], ranked[2]].filter(Boolean);
+    const podiumClass = ['second', 'first', 'third'];
+    const medals = ['🥈', '🥇', '🥉'];
+
+    const podiumHTML = podiumOrder.map((u, i) => `
+      <div class="podium-place ${podiumClass[i]}">
+        <div class="podium-avatar">${u.avatar}</div>
+        <div class="podium-name">${u.label}</div>
+        <div class="podium-pct">${u.pct}%</div>
+        <div class="podium-block">${medals[i]}</div>
+      </div>`).join('');
+
+    // All-time points (last 6 months)
+    const allTimePoints = await computeAllTimePoints();
+
+    const allTimeRows = USERS_CONFIG
+      .map(u => ({ ...u, pts: allTimePoints[u.id] || 0 }))
+      .sort((a, b) => b.pts - a.pts);
+
+    const rankEmojis = ['🥇','🥈','🥉'];
+    const allTimeHTML = allTimeRows.map((u, i) => `
+      <div class="points-row">
+        <div class="points-rank">${rankEmojis[i] || i+1}</div>
+        <div class="points-user">${u.avatar} ${u.label}</div>
+        <div class="points-val">${u.pts} pts</div>
+      </div>`).join('');
+
+    content.innerHTML = `
+      <div class="podium">${podiumHTML}</div>
+      <div class="points-table">
+        <div class="points-row header">
+          <div class="points-rank">#</div>
+          <div class="points-user" style="flex:1">${t('allTimePoints')}</div>
+          <div class="points-val">Pts</div>
+        </div>
+        ${allTimeHTML}
+      </div>`;
+  }
+
+  async function computeAllTimePoints() {
+    // Fetch last 6 months of data for all users
+    const now = new Date();
+    const from6 = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0,10);
+    const to6   = now.toISOString().slice(0,10);
+
+    const { data } = await db.from('habits').select('user_name, date, done')
+      .gte('date', from6).lte('date', to6).gt('date', TEMPLATE_DATE);
+    if (!data) return {};
+
+    // Group by month → per-user stats
+    const monthMap = {};
+    for (const row of data) {
+      const mo = row.date.slice(0,7); // YYYY-MM
+      if (!monthMap[mo]) monthMap[mo] = {};
+      for (const u of USERS_CONFIG) if (!monthMap[mo][u.id]) monthMap[mo][u.id] = { total: 0, done: 0 };
+      if (monthMap[mo][row.user_name]) {
+        monthMap[mo][row.user_name].total++;
+        if (row.done) monthMap[mo][row.user_name].done++;
+      }
+    }
+
+    const totals = {};
+    for (const u of USERS_CONFIG) totals[u.id] = 0;
+
+    for (const mo of Object.keys(monthMap)) {
+      const ranked = USERS_CONFIG
+        .map(u => ({ id: u.id, pct: monthMap[mo][u.id]?.total > 0 ? monthMap[mo][u.id].done / monthMap[mo][u.id].total : 0 }))
+        .sort((a, b) => b.pct - a.pct);
+      const ptMap = [3, 2, 1];
+      ranked.forEach((u, i) => {
+        const prev = i > 0 ? ranked[i-1].pct : null;
+        const p = prev !== null && u.pct === prev ? (totals[ranked[i-1].id] - totals[ranked[i-1].id]) || ptMap[i] : ptMap[i] ?? 1;
+        totals[u.id] += ptMap[i] ?? 1;
+      });
+    }
+    return totals;
+  }
+
+  document.getElementById('tournament-btn').addEventListener('click', openTournament);
+  document.getElementById('tournament-close-btn').addEventListener('click', () =>
+    document.getElementById('tournament-modal').classList.remove('open'));
+  document.getElementById('tournament-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('tournament-modal'))
+      document.getElementById('tournament-modal').classList.remove('open');
+  });
+  document.getElementById('trn-prev').addEventListener('click', async () => {
+    trnMonth--; if (trnMonth < 1) { trnMonth = 12; trnYear--; } await renderTournament();
+  });
+  document.getElementById('trn-next').addEventListener('click', async () => {
+    trnMonth++; if (trnMonth > 12) { trnMonth = 1; trnYear++; } await renderTournament();
+  });
 
   // ─── Stats Modal ─────────────────────────────────────────────────────────
   let chartLine = null, chartBar = null;
