@@ -161,6 +161,21 @@
     .cal-legend-item { display: flex; align-items: center; gap: 5px; }
     .cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
+    /* ── User switcher ───────────────────────────────────────────── */
+    .user-switcher {
+      display: flex; gap: 8px; justify-content: center; margin-bottom: 28px;
+    }
+    .user-btn {
+      flex: 1; max-width: 160px; padding: 10px 16px; border: 2px solid #e2e8f0;
+      border-radius: 12px; background: #fff; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; color: #718096; transition: all 0.15s; text-align: center;
+    }
+    .user-btn:hover { border-color: #667eea; color: #667eea; }
+    .user-btn.active { background: #667eea; border-color: #667eea; color: #fff; }
+    .user-btn .user-avatar {
+      display: block; font-size: 1.4rem; line-height: 1; margin-bottom: 3px;
+    }
+
     /* ── Stats Modal ─────────────────────────────────────────────── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -255,6 +270,12 @@
     </button>
   </header>
 
+  <div class="user-switcher" id="user-switcher">
+    <button class="user-btn active" data-user="me"><span class="user-avatar">🧑</span>Me</button>
+    <button class="user-btn" data-user="sister"><span class="user-avatar">👧</span>Sister</button>
+    <button class="user-btn" data-user="mother"><span class="user-avatar">👩</span>Mother</button>
+  </div>
+
   <form class="add-habit-form" id="add-form">
     <input type="text" id="habit-input" placeholder="Add a new habit..." maxlength="80" autocomplete="off" />
     <button type="submit" id="add-btn">+ Add</button>
@@ -320,6 +341,23 @@
 
   const TODAY = new Date().toISOString().slice(0, 10);
 
+  // ─── Active user ─────────────────────────────────────────────────────────
+  let currentUser = localStorage.getItem('active-user') || 'me';
+
+  function setUser(user) {
+    currentUser = user;
+    localStorage.setItem('active-user', user);
+    document.querySelectorAll('.user-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.user === user);
+    });
+    reload();
+  }
+
+  document.getElementById('user-switcher').addEventListener('click', e => {
+    const btn = e.target.closest('.user-btn');
+    if (btn && btn.dataset.user !== currentUser) setUser(btn.dataset.user);
+  });
+
   const list         = document.getElementById('habits-list');
   const progressBar  = document.getElementById('progress-bar');
   const progressText = document.getElementById('progress-text');
@@ -338,14 +376,16 @@
 
   async function fetchTemplates() {
     const { data, error } = await db
-      .from('habits').select('*').eq('date', TEMPLATE_DATE).order('created_at', { ascending: true });
+      .from('habits').select('*').eq('date', TEMPLATE_DATE).eq('user_name', currentUser)
+      .order('created_at', { ascending: true });
     if (error) throw error;
     return data;
   }
 
   async function fetchHabits() {
     const { data, error } = await db
-      .from('habits').select('*').eq('date', TODAY).order('created_at', { ascending: true });
+      .from('habits').select('*').eq('date', TODAY).eq('user_name', currentUser)
+      .order('created_at', { ascending: true });
     if (error) throw error;
     return data;
   }
@@ -355,55 +395,54 @@
     const lastDay = new Date(year, month, 0).getDate();
     const to = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
     const { data, error } = await db
-      .from('habits').select('date, done').gte('date', from).lte('date', to);
+      .from('habits').select('date, done').eq('user_name', currentUser)
+      .gte('date', from).lte('date', to);
     if (error) throw error;
     return data;
   }
 
   async function fetchRangeHabits(from, to) {
     const { data, error } = await db
-      .from('habits').select('date, done').gte('date', from).lte('date', to);
+      .from('habits').select('date, done').eq('user_name', currentUser)
+      .gte('date', from).lte('date', to);
     if (error) throw error;
     return data;
   }
 
-  // On each app load: make sure today has a row for every template habit.
-  // Also seeds templates from the most recent past day if templates are empty.
   async function syncToday() {
     let templates = await fetchTemplates();
 
-    // First-ever launch: seed templates from most recent past day (migration)
+    // First-ever launch for this user: seed templates from most recent past day
     if (templates.length === 0) {
       const { data: latest } = await db
-        .from('habits').select('date').gt('date', TEMPLATE_DATE).lt('date', TODAY)
+        .from('habits').select('date').eq('user_name', currentUser)
+        .gt('date', TEMPLATE_DATE).lt('date', TODAY)
         .order('date', { ascending: false }).limit(1).single();
       if (latest) {
         const { data: prev } = await db
-          .from('habits').select('name, created_at')
+          .from('habits').select('name, created_at').eq('user_name', currentUser)
           .eq('date', latest.date).order('created_at', { ascending: true });
         if (prev && prev.length > 0) {
-          await db.from('habits').insert(prev.map(h => ({ name: h.name, done: false, date: TEMPLATE_DATE })));
+          await db.from('habits').insert(prev.map(h => ({ name: h.name, done: false, date: TEMPLATE_DATE, user_name: currentUser })));
           templates = await fetchTemplates();
         }
       }
     }
 
-    if (templates.length === 0) return; // no habits defined yet
+    if (templates.length === 0) return;
 
-    // Ensure every template habit has a record for today
-    const { data: todayRows } = await db.from('habits').select('name').eq('date', TODAY);
+    const { data: todayRows } = await db.from('habits').select('name').eq('date', TODAY).eq('user_name', currentUser);
     const todayNames = new Set((todayRows || []).map(h => h.name));
     const missing = templates.filter(t => !todayNames.has(t.name));
     if (missing.length > 0) {
-      await db.from('habits').insert(missing.map(t => ({ name: t.name, done: false, date: TODAY })));
+      await db.from('habits').insert(missing.map(t => ({ name: t.name, done: false, date: TODAY, user_name: currentUser })));
     }
   }
 
-  // Add a habit: create the template + today's record
   async function addHabit(name) {
-    await db.from('habits').insert({ name, done: false, date: TEMPLATE_DATE });
+    await db.from('habits').insert({ name, done: false, date: TEMPLATE_DATE, user_name: currentUser });
     const { data, error } = await db
-      .from('habits').insert({ name, done: false, date: TODAY }).select().single();
+      .from('habits').insert({ name, done: false, date: TODAY, user_name: currentUser }).select().single();
     if (error) throw error;
     return data;
   }
@@ -413,11 +452,10 @@
     if (error) throw error;
   }
 
-  // Delete: remove from template list + today (keep past days for stats/calendar)
   async function deleteHabit(id) {
     const { data: habit } = await db.from('habits').select('name').eq('id', id).single();
     if (habit) {
-      await db.from('habits').delete().eq('date', TEMPLATE_DATE).eq('name', habit.name);
+      await db.from('habits').delete().eq('date', TEMPLATE_DATE).eq('user_name', currentUser).eq('name', habit.name);
     }
     const { error } = await db.from('habits').delete().eq('id', id);
     if (error) throw error;
@@ -788,6 +826,11 @@
   const _now = new Date();
   calYear  = _now.getFullYear();
   calMonth = _now.getMonth() + 1;
+
+  // Restore active user button from localStorage
+  document.querySelectorAll('.user-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.user === currentUser);
+  });
 
   if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
     list.innerHTML = `<div class="empty-state"><span>🔧</span>Set your Supabase credentials in index.html to get started.</div>`;
