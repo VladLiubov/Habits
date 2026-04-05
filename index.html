@@ -189,6 +189,48 @@
       display: block; font-size: 1.4rem; line-height: 1; margin-bottom: 3px;
     }
 
+    /* ── Detail Modal ───────────────────────────────────────────── */
+    .detail-form { display: flex; flex-direction: column; gap: 16px; }
+    .detail-habit-name {
+      font-size: 1.1rem; font-weight: 700; color: #1a202c;
+      padding-bottom: 14px; border-bottom: 1px solid #e2e8f0;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-group label {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #718096;
+    }
+    .field-group input, .field-group textarea {
+      padding: 11px 14px; border: 2px solid #e2e8f0; border-radius: 10px;
+      font-size: 0.95rem; font-family: inherit; outline: none;
+      transition: border-color 0.2s; background: #fff; color: #2d3748; resize: none;
+    }
+    .field-group input:focus, .field-group textarea:focus { border-color: #667eea; }
+    .field-row { display: flex; gap: 12px; }
+    .field-row .field-group { flex: 1; }
+    .detail-actions { display: flex; gap: 10px; padding-top: 4px; }
+    .detail-save {
+      flex: 1; padding: 13px; background: #48bb78; color: #fff; border: none;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .detail-save:hover { background: #38a169; }
+    .detail-skip {
+      padding: 13px 18px; background: #e2e8f0; color: #4a5568; border: none;
+      border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .detail-skip:hover { background: #cbd5e0; }
+
+    /* Habit detail badge shown on habit card */
+    .habit-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+    }
+    .habit-badge {
+      font-size: 0.72rem; color: #718096; background: #edf2f7;
+      border-radius: 6px; padding: 2px 7px; display: flex; align-items: center; gap: 3px;
+    }
+
     /* ── Stats Modal ─────────────────────────────────────────────── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -332,6 +374,37 @@
   <div class="db-notice loading" id="db-notice" data-i18n="connecting">Connecting to Supabase...</div>
 </div>
 
+<!-- ── Detail Modal ────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-top">
+      <h2 id="detail-modal-title">Log habit</h2>
+      <button class="modal-close" id="detail-close-btn">&#x2715;</button>
+    </div>
+    <div class="detail-form" id="detail-form">
+      <div class="detail-habit-name" id="detail-habit-name"></div>
+      <div class="field-row">
+        <div class="field-group">
+          <label id="lbl-duration">Duration (min)</label>
+          <input type="number" id="detail-duration" min="1" max="999" placeholder="e.g. 30" />
+        </div>
+        <div class="field-group">
+          <label id="lbl-time">Time</label>
+          <input type="time" id="detail-time" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label id="lbl-note">Note (optional)</label>
+        <textarea id="detail-note" rows="3" placeholder="What did you do?"></textarea>
+      </div>
+      <div class="detail-actions">
+        <button class="detail-save" id="detail-save-btn">Mark as done</button>
+        <button class="detail-skip" id="detail-skip-btn">Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Stats Modal ─────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="stats-modal">
   <div class="modal">
@@ -364,6 +437,9 @@
       avgMonth: 'Avg this month', habitsDone: 'Habits done (90 days)',
       last30: 'Last 30 days — completion %', bestDays: 'Best days of the week',
       placeholder: 'Add a new habit...',
+      logHabit: 'Log habit', markDone: 'Mark as done', skip: 'Skip',
+      duration: 'Duration (min)', time: 'Time', note: 'Note (optional)',
+      whatDidYouDo: 'What did you do?',
       dateLocale: 'en-US',
       calDays: ['Su','Mo','Tu','We','Th','Fr','Sa'],
       calDaysFull: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
@@ -382,6 +458,9 @@
       avgMonth: 'Середнє цього місяця', habitsDone: 'Виконано звичок (90 днів)',
       last30: 'Останні 30 днів — виконання %', bestDays: 'Найкращі дні тижня',
       placeholder: 'Додати нову звичку...',
+      logHabit: 'Записати звичку', markDone: 'Відмітити виконано', skip: 'Пропустити',
+      duration: 'Тривалість (хв)', time: 'Час', note: 'Нотатка (необов\'язково)',
+      whatDidYouDo: 'Що ви робили?',
       dateLocale: 'uk-UA',
       calDays: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
       calDaysFull: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
@@ -401,6 +480,14 @@
         el.textContent = t(key);
       }
     });
+    // Detail modal labels
+    document.getElementById('detail-modal-title').textContent = t('logHabit');
+    document.getElementById('detail-save-btn').textContent    = t('markDone');
+    document.getElementById('detail-skip-btn').textContent    = t('skip');
+    document.getElementById('lbl-duration').textContent       = t('duration');
+    document.getElementById('lbl-time').textContent           = t('time');
+    document.getElementById('lbl-note').textContent           = t('note');
+    document.getElementById('detail-note').placeholder        = t('whatDidYouDo');
     document.querySelectorAll('.lang-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === currentLang);
     });
@@ -537,10 +624,59 @@
     return data;
   }
 
-  async function toggleHabit(id, done) {
-    const { error } = await db.from('habits').update({ done }).eq('id', id);
+  async function toggleHabit(id, done, extra = {}) {
+    const { error } = await db.from('habits').update({ done, ...extra }).eq('id', id);
     if (error) throw error;
   }
+
+  // ─── Detail Modal ────────────────────────────────────────────────────────
+  let detailHabitId = null;
+
+  function openDetailModal(id, name, currentDone) {
+    // Only show detail form when marking as DONE
+    if (currentDone) {
+      // Already done → just uncheck directly
+      toggleHabit(id, false, { duration_minutes: null, completed_time: null, note: null })
+        .then(() => reload()).catch(err => setNotice(err.message, 'error'));
+      return;
+    }
+
+    detailHabitId = id;
+    document.getElementById('detail-habit-name').textContent = name;
+    document.getElementById('detail-duration').value = '';
+    document.getElementById('detail-note').value = '';
+    // Pre-fill time with current time
+    const now = new Date();
+    document.getElementById('detail-time').value =
+      `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+  async function saveDetail(skip = false) {
+    if (!detailHabitId) return;
+    const extra = skip ? {} : {
+      duration_minutes: parseInt(document.getElementById('detail-duration').value) || null,
+      completed_time: document.getElementById('detail-time').value || null,
+      note: document.getElementById('detail-note').value.trim() || null,
+    };
+    try {
+      await toggleHabit(detailHabitId, true, extra);
+      closeDetailModal();
+      await reload();
+    } catch (err) { setNotice(err.message, 'error'); }
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detail-modal').classList.remove('open');
+    detailHabitId = null;
+  }
+
+  document.getElementById('detail-save-btn').addEventListener('click', () => saveDetail(false));
+  document.getElementById('detail-skip-btn').addEventListener('click', () => saveDetail(true));
+  document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
+  document.getElementById('detail-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('detail-modal')) closeDetailModal();
+  });
 
   async function deleteHabit(id) {
     const { data: habit } = await db.from('habits').select('name').eq('id', id).single();
@@ -563,13 +699,24 @@
       const item = document.createElement('div');
       item.className = 'habit-item' + (habit.done ? ' done' : '');
       item.dataset.id = habit.id;
+      // Build badges for extra info
+      let badges = '';
+      if (habit.done) {
+        if (habit.duration_minutes) badges += `<span class="habit-badge">⏱ ${habit.duration_minutes} min</span>`;
+        if (habit.completed_time)   badges += `<span class="habit-badge">🕐 ${habit.completed_time.slice(0,5)}</span>`;
+        if (habit.note)             badges += `<span class="habit-badge">📝 ${escapeHtml(habit.note)}</span>`;
+      }
+
       item.innerHTML = `
-        <div class="habit-check ${habit.done ? 'checked' : ''}" data-id="${habit.id}" data-done="${habit.done}" role="checkbox" aria-checked="${habit.done}" tabindex="0">
+        <div class="habit-check ${habit.done ? 'checked' : ''}" data-id="${habit.id}" data-done="${habit.done}" data-name="${escapeHtml(habit.name)}" role="checkbox" aria-checked="${habit.done}" tabindex="0">
           <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
             <path d="M1 5L4.5 8.5L12 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <span class="habit-name">${escapeHtml(habit.name)}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="habit-name">${escapeHtml(habit.name)}</div>
+          ${badges ? `<div class="habit-meta">${badges}</div>` : ''}
+        </div>
         <button class="habit-delete" data-id="${habit.id}" title="Remove habit">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -882,10 +1029,7 @@
     const checkEl  = e.target.closest('.habit-check');
     const deleteEl = e.target.closest('.habit-delete');
     if (checkEl) {
-      const id = checkEl.dataset.id;
-      const newDone = checkEl.dataset.done !== 'true';
-      try { await toggleHabit(id, newDone); await reload(); }
-      catch (err) { setNotice(`Failed to update habit: ${err.message}`, 'error'); }
+      openDetailModal(checkEl.dataset.id, checkEl.dataset.name, checkEl.dataset.done === 'true');
     }
     if (deleteEl) {
       const id = deleteEl.dataset.id;
