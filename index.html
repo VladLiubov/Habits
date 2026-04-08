@@ -16,19 +16,23 @@
     }
 
     header {
-      text-align: center;
-      margin-bottom: 32px;
-      position: relative;
+      margin-bottom: 28px;
     }
 
-    header h1 { font-size: 2rem; font-weight: 700; color: #1a202c; }
-    header p.date { margin-top: 6px; font-size: 1rem; color: #718096; }
+    .header-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; gap: 8px;
+    }
+
+    .header-title {
+      text-align: center; flex: 1;
+    }
+
+    header h1 { font-size: 1.6rem; font-weight: 700; color: #1a202c; line-height: 1.2; }
+    header p.date { margin-top: 4px; font-size: 0.85rem; color: #718096; text-align: center; }
 
     /* Lang switcher */
-    .lang-switcher {
-      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-      display: flex; gap: 4px;
-    }
+    .lang-switcher { display: flex; gap: 4px; flex-shrink: 0; }
     .lang-btn {
       background: #e2e8f0; border: none; border-radius: 7px; padding: 5px 9px;
       font-size: 0.78rem; font-weight: 700; cursor: pointer; color: #718096;
@@ -38,18 +42,16 @@
     .lang-btn.active { background: #667eea; color: #fff; }
 
     /* Header action buttons */
-    .header-actions {
-      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-      display: flex; gap: 6px;
-    }
+    .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .stats-btn {
       background: #667eea; color: #fff; border: none; border-radius: 10px;
-      padding: 9px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; transition: background 0.2s;
+      padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; transition: background 0.2s;
+      white-space: nowrap;
     }
     .stats-btn:hover { background: #5a67d8; }
     .stats-btn svg { flex-shrink: 0; }
-    .trophy-btn { background: #ed8936; }
+    .trophy-btn { background: #ed8936; padding: 8px 11px; }
     .trophy-btn:hover { background: #dd6b20; }
 
     /* Day preview modal */
@@ -365,23 +367,27 @@
 
 <div class="container">
   <header>
-    <div class="lang-switcher">
-      <button class="lang-btn active" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="ua">UA</button>
+    <div class="header-top">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="ua">UA</button>
+      </div>
+      <div class="header-title">
+        <h1 id="app-title">Daily Habits</h1>
+      </div>
+      <div class="header-actions">
+        <button class="stats-btn" id="stats-open-btn">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/>
+            <rect x="6" y="4" width="3" height="11" rx="1" fill="currentColor"/>
+            <rect x="11" y="1" width="3" height="14" rx="1" fill="currentColor"/>
+          </svg>
+          <span data-i18n="stats">Stats</span>
+        </button>
+        <button class="stats-btn trophy-btn" id="tournament-btn">🏆</button>
+      </div>
     </div>
-    <h1 id="app-title">Daily Habits</h1>
     <p class="date" id="today-date"></p>
-    <div class="header-actions">
-      <button class="stats-btn" id="stats-open-btn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/>
-          <rect x="6" y="4" width="3" height="11" rx="1" fill="currentColor"/>
-          <rect x="11" y="1" width="3" height="14" rx="1" fill="currentColor"/>
-        </svg>
-        <span data-i18n="stats">Stats</span>
-      </button>
-      <button class="stats-btn trophy-btn" id="tournament-btn">🏆</button>
-    </div>
   </header>
 
   <div class="user-switcher" id="user-switcher">
